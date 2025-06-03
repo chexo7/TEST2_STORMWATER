@@ -1,1 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa con Google Maps</title>
+    <style>
+        #map {
+            width: 100%;
+            height: 400px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .controls {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <input type="text" id="locationInput" placeholder="Direcci\u00f3n o coordenadas (lat,lng)" size="40">
+        <select id="mapType">
+            <option value="roadmap">Mapa</option>
+            <option value="satellite">Sat\u00e9lite</option>
+        </select>
+        <button onclick="geocode()">Buscar</button>
+    </div>
+    <div id="map"></div>
 
+    <script>
+        let map;
+        let geocoder;
+
+        function initMap() {
+            const initialPosition = { lat: -34.6037, lng: -58.3816 }; // Buenos Aires por defecto
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 8,
+                center: initialPosition,
+                mapTypeId: 'roadmap'
+            });
+            geocoder = new google.maps.Geocoder();
+        }
+
+        function geocode() {
+            const input = document.getElementById('locationInput').value.trim();
+            const type = document.getElementById('mapType').value;
+            map.setMapTypeId(type);
+
+            if (input === '') return;
+
+            const coordMatch = input.match(/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/);
+            if (coordMatch) {
+                const lat = parseFloat(coordMatch[1]);
+                const lng = parseFloat(coordMatch[2]);
+                const position = { lat, lng };
+                map.setCenter(position);
+                new google.maps.Marker({ map, position });
+            } else {
+                geocoder.geocode({ address: input }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        map.setCenter(results[0].geometry.location);
+                        new google.maps.Marker({ map, position: results[0].geometry.location });
+                    } else {
+                        alert('No se pudo encontrar la ubicaci\u00f3n');
+                    }
+                });
+            }
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB_IazCUbRrYp96Em5s3z5MXXfBEbCC86o&callback=initMap"></script>
+</body>
+</html>
